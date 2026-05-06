@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -307,13 +308,19 @@ func handleWhoami(w http.ResponseWriter, r *http.Request) {
 		ua = "(no user agent — bold choice)"
 	}
 
+	headerNames := make([]string, 0, len(r.Header))
+	for name := range r.Header {
+		headerNames = append(headerNames, name)
+	}
+	sort.Strings(headerNames)
+
 	var headers strings.Builder
 	headers.WriteString("<table>\n<tr><th>Header</th><th>Value</th></tr>\n")
-	for name, vals := range r.Header {
+	for _, name := range headerNames {
 		headers.WriteString(fmt.Sprintf(
 			"<tr><td>%s</td><td>%s</td></tr>\n",
 			html.EscapeString(name),
-			html.EscapeString(strings.Join(vals, ", ")),
+			html.EscapeString(strings.Join(r.Header[name], ", ")),
 		))
 	}
 	headers.WriteString("</table>")
