@@ -54,8 +54,9 @@ pre {
     word-break: break-word;
     margin: 12px 0;
 }
-table { border-collapse: collapse; width: 100%; margin: 12px 0; }
-th, td { border: 1px solid #30363d; padding: 6px 12px; text-align: left; vertical-align: top; }
+.table-wrap { overflow-x: auto; margin: 12px 0; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; min-width: 400px; }
+th, td { border: 1px solid #30363d; padding: 6px 12px; text-align: left; vertical-align: top; word-break: break-word; }
 th { background: #161b22; color: #8b949e; font-weight: normal; }
 tr:hover { background: #161b22; }
 .dim    { color: #8b949e; }
@@ -68,7 +69,11 @@ tr:hover { background: #161b22; }
     padding-top: 14px;
     color: #8b949e;
     font-size: 0.82em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 0;
 }
+.nav a { white-space: nowrap; }
 input[type=text], input[type=password] {
     background: #161b22;
     border: 1px solid #30363d;
@@ -268,7 +273,7 @@ It does some entertaining things.
 </p>
 
 <h2>Things to explore</h2>
-<table>
+<div class="table-wrap"><table>
 <tr><th>Path</th><th>What awaits</th></tr>
 <tr><td><a href="/whoami">/whoami</a></td><td>What this server thinks about you (based on your headers)</td></tr>
 <tr><td><a href="/fortune">/fortune</a></td><td>Programming wisdom of dubious utility</td></tr>
@@ -282,7 +287,7 @@ It does some entertaining things.
 <tr><td><a href="/echo">/echo</a></td><td>POST something, get it back</td></tr>
 <tr><td><a href="/admin">/admin</a></td><td>Definitely a real admin panel</td></tr>
 <tr><td><a href="/robots.txt">/robots.txt</a></td><td>Instructions for bots (and curious humans)</td></tr>
-</table>
+</table></div>
 
 <p class="dim">
   There are other things to find. The headers are always interesting.
@@ -308,7 +313,7 @@ func handleWhoami(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var headers strings.Builder
-	headers.WriteString("<table>\n<tr><th>Header</th><th>Value</th></tr>\n")
+	headers.WriteString("<div class=\"table-wrap\"><table>\n<tr><th>Header</th><th>Value</th></tr>\n")
 	for name, vals := range r.Header {
 		headers.WriteString(fmt.Sprintf(
 			"<tr><td>%s</td><td>%s</td></tr>\n",
@@ -316,20 +321,20 @@ func handleWhoami(w http.ResponseWriter, r *http.Request) {
 			html.EscapeString(strings.Join(vals, ", ")),
 		))
 	}
-	headers.WriteString("</table>")
+	headers.WriteString("</table></div>")
 
 	body := fmt.Sprintf(`
 <h1>whoami</h1>
 <p>Everything the server can see about your request:</p>
 
 <h2>The basics</h2>
-<table>
+<div class="table-wrap"><table>
 <tr><th>Field</th><th>Value</th></tr>
 <tr><td>IP (best guess)</td><td>%s</td></tr>
 <tr><td>Method</td><td>%s</td></tr>
 <tr><td>Protocol</td><td>%s</td></tr>
 <tr><td>User-Agent</td><td>%s</td></tr>
-</table>
+</table></div>
 
 <h2>All request headers</h2>
 %s
@@ -405,7 +410,7 @@ func handleStatus(w http.ResponseWriter, r *http.Request) {
 <h1>status</h1>
 
 <h2>System</h2>
-<table>
+<div class="table-wrap"><table>
 <tr><th>Metric</th><th>Value</th><th>Notes</th></tr>
 <tr><td>status</td><td><span class="green">operational</span></td><td>against all reasonable odds</td></tr>
 <tr><td>uptime</td><td>%s</td><td>unplanned downtime: 0 (so far)</td></tr>
@@ -413,10 +418,10 @@ func handleStatus(w http.ResponseWriter, r *http.Request) {
 <tr><td>hardware</td><td>Raspberry Pi</td><td>ARM, 5W, costs less than a fancy coffee</td></tr>
 <tr><td>tunnel</td><td>cloudflared</td><td>because port forwarding in the router is scary</td></tr>
 <tr><td>language</td><td>Go</td><td>fast, boring, correct — ideal for servers</td></tr>
-</table>
+</table></div>
 
 <h2>Important Metrics</h2>
-<table>
+<div class="table-wrap"><table>
 <tr><th>Metric</th><th>Value</th></tr>
 <tr><td>coffee_consumed_liters</td><td>~%d</td></tr>
 <tr><td>existential_crises_resolved</td><td>0</td></tr>
@@ -429,7 +434,7 @@ func handleStatus(w http.ResponseWriter, r *http.Request) {
 <tr><td>times_framework_was_actually_at_fault</td><td>1</td></tr>
 <tr><td>documentation_read</td><td><span class="yellow">partially</span></td></tr>
 <tr><td>tests_written</td><td><span class="red">aspirationally</span></td></tr>
-</table>
+</table></div>
 
 <h2>Timeline</h2>
 <pre>
