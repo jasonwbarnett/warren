@@ -512,7 +512,7 @@ func handleEcho(w http.ResponseWriter, r *http.Request) {
      -H "Content-Type: text/plain" \
      -d "hello from the outside world"</pre>
 <p class="dim">Works with any Content-Type. JSON, XML, YAML, your deepest fears — all echoed faithfully.</p>
-<p class="dim">Body limit: 1 MB. Keep it civil.</p>
+<p class="dim">Body limit: 64 KB. Keep it civil.</p>
 `
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		fmt.Fprint(w, page("echo", body))
@@ -523,9 +523,10 @@ func handleEcho(w http.ResponseWriter, r *http.Request) {
 	if ct == "" {
 		ct = "text/plain; charset=utf-8"
 	}
-	body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20))
+	r.Body = http.MaxBytesReader(w, r.Body, 64<<10) // 64 KB
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "failed to read body", http.StatusInternalServerError)
+		http.Error(w, "request body too large (limit: 64 KB)", http.StatusRequestEntityTooLarge)
 		return
 	}
 	w.Header().Set("Content-Type", ct)
@@ -860,9 +861,18 @@ func main() {
 		port = p
 	}
 
+	srv := &http.Server{
+		Addr:              ":" + port,
+		Handler:           middleware(mux),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
 	fmt.Printf("Listening on :%s\n", port)
 	fmt.Println("May your uptime be long and your errors be few.")
-	if err := http.ListenAndServe(":"+port, middleware(mux)); err != nil {
+	if err := srv.ListenAndServe(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
